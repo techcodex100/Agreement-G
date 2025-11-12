@@ -20,7 +20,7 @@ class AgreementData(BaseModel):
     gst_number: str
     seller: list[str]
     consignee: list[str]
-    notify_party: list[str]   # ✅ only one notify party
+    notify_party: list[str]
     product: str
     quantity: str
     price: str
@@ -44,26 +44,29 @@ async def generate_agreement(data: AgreementData):
     normal = styles["Normal"]
 
     left_margin, right_margin = 50, width - 50
-    y = height - 40
+    y = height - 60  # 🔹 slightly more space at top
 
-    # 🔷 Header
-    c.setFont("Helvetica-Bold", 10)
-    c.setFillColor(colors.grey)
-    c.drawString(left_margin, y, f"Website: {data.website}")
+    # 🔷 Company Name (Main Heading)
     c.setFont("Helvetica-Bold", 16)
     c.setFillColor(colors.black)
     c.drawCentredString(width / 2, y, data.company_name.upper())
-    c.setFont("Helvetica-Bold", 10)
-    c.setFillColor(colors.grey)
-    c.drawRightString(right_margin, y, f"Email: {data.email}")
 
+    # 🔷 Organization / Subtitle
     y -= 20
     c.setFont("Helvetica", 11)
-    c.setFillColor(colors.black)
     c.drawCentredString(width / 2, y, data.organization)
 
-    # 🔷 Address + GST
+    # 🔷 Website and Email (below heading)
+    y -= 15
+    c.setFont("Helvetica", 9)
+    c.setFillColor(colors.grey)
+    c.drawString(left_margin, y, f"Website: {data.website}")  # ✅ FIXED
+    c.drawRightString(right_margin, y, f"Email: {data.email}")
+
     y -= 40
+    c.setFillColor(colors.black)
+
+    # 🔷 Address + GST
     para = Paragraph(f"<b>Address:</b> {data.address}", normal)
     w, h = para.wrap(width/2, 50)
     para.drawOn(c, left_margin, y - h)
@@ -83,29 +86,26 @@ async def generate_agreement(data: AgreementData):
     c.drawRightString(right_margin, y, f"Date: {data.date}")
     y -= 40
 
-    # 🔷 Seller (Left), Consignee (Center), Notify Party (Right)
+    # 🔷 Seller, Consignee, Notify Party Columns
     seller_para = Paragraph(f"<b>SELLER</b><br/>{'<br/>'.join(data.seller)}", normal)
     consignee_para = Paragraph(f"<b>CONSIGNEE</b><br/>{'<br/>'.join(data.consignee)}", normal)
     notify_para = Paragraph(f"<b>NOTIFY PARTY</b><br/>{'<br/>'.join(data.notify_party)}", normal)
 
     usable_width = width - (left_margin * 2)
 
-    # Seller Left
     w1, h1 = seller_para.wrap(usable_width/3, 200)
     seller_para.drawOn(c, left_margin, y - h1)
 
-    # Consignee Center
     w2, h2 = consignee_para.wrap(usable_width/3, 200)
     consignee_x = left_margin + (usable_width - w2) / 2
     consignee_para.drawOn(c, consignee_x, y - h2)
 
-    # Notify Party Right
     w3, h3 = notify_para.wrap(usable_width/3, 200)
     notify_para.drawOn(c, right_margin - w3, y - h3)
 
     y -= max(h1, h2, h3) + 40
 
-    # 🔷 Product Table (manual look)
+    # 🔷 Product Table
     c.setFont("Helvetica-Bold", 9)
     c.setFillColor(colors.lightblue)
     c.rect(left_margin, y - 20, width - 100, 20, fill=1, stroke=1)
