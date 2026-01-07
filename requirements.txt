@@ -1,2 +1,4 @@
-reportlab
 fastapi
+uvicorn
+pydantic
+reportlab
